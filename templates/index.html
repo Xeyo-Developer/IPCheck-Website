@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <title>Your IP Address</title>
+
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
+    <body>
+        <main class="ip-box">
+            <h1>Your IP address:</h1>
+            <div class="ip-container">
+                <div class="ip">{{ ip }}</div>
+                <button class="copy-button" onclick="copyIP()" title="Copy IP">
+                    <span class="material-icons">content_copy</span>
+                </button>
+            </div>
+        </main>
+
+        <script>
+            function copyIP() {
+                const ip = '{{ ip }}';
+                const button = document.querySelector('.copy-button');
+                const icon = button.querySelector('.material-icons');
+
+                navigator.clipboard.writeText(ip).then(() => {
+                    icon.textContent = 'check';
+                    button.classList.add('copied');
+
+                    setTimeout(() => {
+                        icon.textContent = 'content_copy';
+                        button.classList.remove('copied');
+                    }, 2000);
+                }).catch((err) => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy IP');
+                });
+            }
+        </script>
+    </body>
+</html>
