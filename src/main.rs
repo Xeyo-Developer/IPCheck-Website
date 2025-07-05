@@ -70,17 +70,17 @@ async fn main() {
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
 
     if let Ok(local_ip) = local_ip() {
-        println!("Serwer dostępny na:");
+        println!("Server available at:");
         println!("  http://localhost:{}", port);
         println!("  http://{}:{}", local_ip, port);
     } else {
-        println!("Serwer działa na porcie {}", port);
+        println!("Server running on port {}", port);
     }
 
     let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
 
     ctrlc::set_handler(move || {
-        println!("\nZamykanie serwera...");
+        println!("\nShutting down server...");
         std::process::exit(0);
     }).expect("Error setting Ctrl-C handler");
 
