@@ -5,29 +5,104 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Your IP Address</title>
+        <title>IP Check Website</title>
 
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
         <link rel="stylesheet" href="/static/style.css">
     </head>
+
     <body>
-        <main class="ip-box">
-            <h1>Your IP address:</h1>
-            <div class="ip-container">
-                <div class="ip">{{ ip }}</div>
-                <button class="copy-button" onclick="copyIP()" title="Copy IP">
-                    <span class="material-icons">content_copy</span>
-                </button>
-            </div>
-        </main>
+        <div class="stars"></div>
+        <div class="container">
+            <header class="header">
+                <h1>🌐 IP Check Website</h1>
+                <p>Discover your digital footprint</p>
+            </header>
+
+            <main class="main-content">
+                <div class="ip-card">
+                    <div class="card-header">
+                        <span class="material-icons">public</span>
+                        <h2>Your IP Address</h2>
+                    </div>
+                    <div class="ip-container">
+                        <div class="ip-display">{{ ip }}</div>
+                        <button class="copy-btn" onclick="copyIP()" title="Copy IP">
+                            <span class="material-icons">content_copy</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card" id="device-info">
+                        <div class="card-header">
+                            <span class="material-icons">devices</span>
+                            <h3>Device Info</h3>
+                        </div>
+                        <div class="info-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="info-card" id="location-info">
+                        <div class="card-header">
+                            <span class="material-icons">location_on</span>
+                            <h3>Location</h3>
+                        </div>
+                        <div class="info-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="info-card" id="connection-info">
+                        <div class="card-header">
+                            <span class="material-icons">wifi</span>
+                            <h3>Connection</h3>
+                        </div>
+                        <div class="info-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+
+                    <div class="info-card" id="security-info">
+                        <div class="card-header">
+                            <span class="material-icons">security</span>
+                            <h3>Security</h3>
+                        </div>
+                        <div class="info-content">
+                            <div class="loading">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="api-section">
+                    <h3>API Endpoints</h3>
+                    <div class="api-links">
+                        <a href="/api" class="api-link">
+                            <span class="material-icons">code</span>
+                            JSON API
+                        </a>
+                        <a href="/plain" class="api-link">
+                            <span class="material-icons">text_fields</span>
+                            Plain Text
+                        </a>
+                    </div>
+                </div>
+            </main>
+
+            <footer class="footer">
+                <p>Made with ❤️ using Rust & Axum by <a href="https://github.com/Xeyo-Developer">Xeyo</a></p>
+            </footer>
+        </div>
 
         <script>
+            const IP_ADDRESS = '{{ ip }}';
+
             function copyIP() {
-                const ip = '{{ ip }}';
-                const button = document.querySelector('.copy-button');
+                const button = document.querySelector('.copy-btn');
                 const icon = button.querySelector('.material-icons');
 
-                navigator.clipboard.writeText(ip).then(() => {
+                navigator.clipboard.writeText(IP_ADDRESS).then(() => {
                     icon.textContent = 'check';
                     button.classList.add('copied');
 
@@ -37,9 +112,116 @@
                     }, 2000);
                 }).catch((err) => {
                     console.error('Failed to copy:', err);
-                    alert('Failed to copy IP');
+                    showNotification('Failed to copy IP', 'error');
                 });
             }
+
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `notification ${type}`;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.classList.add('show');
+                }, 100);
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                    setTimeout(() => {
+                        document.body.removeChild(notification);
+                    }, 300);
+                }, 3000);
+            }
+
+            async function loadDetailedInfo() {
+                try {
+                    const response = await fetch('/api');
+                    const data = await response.json();
+
+                    const deviceInfo = document.querySelector('#device-info .info-content');
+                    deviceInfo.innerHTML = `
+                            <div class="info-item">
+                                <span class="label">Device Type:</span>
+                                <span class="value">${data.is_mobile ? 'Mobile' : 'Desktop'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">User Agent:</span>
+                                <span class="value" title="${data.user_agent}">${data.user_agent.substring(0, 50)}...</span>
+                            </div>
+                        `;
+
+                    const locationInfo = document.querySelector('#location-info .info-content');
+                    if (data.geo) {
+                        locationInfo.innerHTML = `
+                                <div class="info-item">
+                                    <span class="label">Country:</span>
+                                    <span class="value">${data.geo.country || 'Unknown'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Region:</span>
+                                    <span class="value">${data.geo.region || 'Unknown'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">City:</span>
+                                    <span class="value">${data.geo.city || 'Unknown'}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="label">Timezone:</span>
+                                    <span class="value">${data.geo.timezone || 'Unknown'}</span>
+                                </div>
+                            `;
+                    } else {
+                        locationInfo.innerHTML = '<div class="info-item">Location data not available</div>';
+                    }
+
+                    const connectionInfo = document.querySelector('#connection-info .info-content');
+                    connectionInfo.innerHTML = `
+                            <div class="info-item">
+                                <span class="label">Connection Type:</span>
+                                <span class="value">${data.connection_type}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">ISP:</span>
+                                <span class="value">${data.geo?.org || 'Unknown'}</span>
+                            </div>
+                        `;
+
+                    const securityInfo = document.querySelector('#security-info .info-content');
+                    securityInfo.innerHTML = `
+                            <div class="info-item">
+                                <span class="label">Tor Network:</span>
+                                <span class="value ${data.is_tor ? 'warning' : 'safe'}">${data.is_tor ? 'Yes' : 'No'}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">VPN/Proxy:</span>
+                                <span class="value ${data.is_vpn ? 'warning' : 'safe'}">${data.is_vpn ? 'Detected' : 'None'}</span>
+                            </div>
+                        `;
+
+                } catch (error) {
+                    console.error('Error loading detailed info:', error);
+                    document.querySelectorAll('.loading').forEach(loader => {
+                        loader.textContent = 'Error loading data';
+                    });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', loadDetailedInfo);
+
+            function createStars() {
+                const starsContainer = document.querySelector('.stars');
+                for (let i = 0; i < 50; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.animationDelay = Math.random() * 2 + 's';
+                    starsContainer.appendChild(star);
+                }
+            }
+
+            createStars();
         </script>
     </body>
 </html>
